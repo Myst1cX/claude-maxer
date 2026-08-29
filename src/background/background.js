@@ -75,6 +75,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     notifyFailed(msg.reason);
     setTimeout(() => chrome.tabs.remove(sender.tab.id), 2000);
   }
+
+  if (msg.type === 'CHECK_UPDATE') {
+    checkForUpdate();
+    sendResponse({ ok: true });
+    return true;
+  }
 });
 
 // live session % on the extension icon in the toolbar
