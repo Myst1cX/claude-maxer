@@ -1,3 +1,10 @@
+// Check for updates every time popup opens
+chrome.runtime.sendMessage({ type: 'CHECK_UPDATE' }, (response) => {
+  if (response?.ok) {
+    console.log('Update check triggered on popup open');
+  }
+});
+
 const toggleAuto     = document.getElementById('toggleAuto');
 const toggleSchedule = document.getElementById('toggleSchedule');
 const scheduleBody   = document.getElementById('scheduleBody');
