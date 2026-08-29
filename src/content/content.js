@@ -34,6 +34,57 @@
 
   injectBridge();
 
+  // Attach bar early with empty state, will populate when data loads
+  function attachBarEarly() {
+    if (document.getElementById('cm-bar')) return;
+    
+    const anchor = document.querySelector('[data-testid="chat-input"]');
+    if (!anchor) {
+      setTimeout(attachBarEarly, 300);
+      return;
+    }
+
+    let container = anchor.parentElement;
+    while (container) {
+      if (container.querySelector('[data-testid="chat-input"]') && 
+          container.querySelector('[data-cds="ChatComposerActions"]')) {
+        break;
+      }
+      container = container.parentElement;
+    }
+
+    if (!container?.parentElement) {
+      setTimeout(attachBarEarly, 300);
+      return;
+    }
+
+    const bar = createBar();
+    container.parentElement.insertBefore(bar, container.nextSibling);
+    log('early bar attachment successful');
+    
+    // Try to load and render cached usage data
+    const cachedUsage = getCachedUsage();
+    if (cachedUsage) {
+      log('rendering cached usage on reload');
+      renderBar(cachedUsage);
+      window._cmLastUsage = cachedUsage;
+    } else {
+      // Render with placeholder empty state so labels/tracks show
+      function updateSegment(fillId, markerId, metaId) {
+        const fill = document.getElementById(fillId);
+        const marker = document.getElementById(markerId);
+        const meta = document.getElementById(metaId);
+        if (fill) fill.style.width = '0%';
+        if (marker) marker.style.left = '0%';
+        if (meta) meta.textContent = '–';
+      }
+      updateSegment('cm-session-fill', 'cm-session-marker', 'cm-session-meta');
+      updateSegment('cm-weekly-fill', 'cm-weekly-marker', 'cm-weekly-meta');
+    }
+  }
+
+  setTimeout(attachBarEarly, 600);
+
   // get org ID from cookie 
   function getOrgIdFromCookie() {
     try {
@@ -98,6 +149,39 @@
 
   // track whether a response is currently streaming, so we can avoid refetching /usage mid-generation
   let isGenerating = false;
+
+  // localStorage key for caching usage
+  const USAGE_CACHE_KEY = 'cm-usage-cache';
+
+  // Save usage to localStorage
+  function cacheUsage(usage) {
+    try {
+      localStorage.setItem(USAGE_CACHE_KEY, JSON.stringify(usage));
+    } catch (e) {
+      log('failed to cache usage:', e);
+    }
+  }
+
+  // Load usage from localStorage
+  function getCachedUsage() {
+    try {
+      const cached = localStorage.getItem(USAGE_CACHE_KEY);
+      if (cached) {
+        const usage = JSON.parse(cached);
+        // Convert resets_at strings back to Date objects
+        if (usage.five_hour?.resets_at) {
+          usage.five_hour.resets_at = new Date(usage.five_hour.resets_at);
+        }
+        if (usage.seven_day?.resets_at) {
+          usage.seven_day.resets_at = new Date(usage.seven_day.resets_at);
+        }
+        return usage;
+      }
+    } catch (e) {
+      log('failed to get cached usage:', e);
+    }
+    return null;
+  }
 
   // token estimate — lazy-loaded tokenizer, only parsed once, only if this feature is used
   let tokenizerPromise = null;
@@ -366,18 +450,40 @@
     return el;
   }
 
-  // attach bar below the toolbar
+  // attach bar below the composer input
   function attachBar() {
     if (document.getElementById('cm-bar')) return;
 
-    const anchor = document.querySelector('[data-testid="model-selector-dropdown"]');
-    if (!anchor) return;
+    const anchor = document.querySelector('[data-testid="chat-input"]');
+    if (!anchor) {
+      log('attachBar: chat-input not found');
+      return;
+    }
 
-    const toolbar = anchor.closest('div[class*="flex"]')?.parentElement;
-    if (!toolbar) return;
+    // Traverse up to find a stable container
+    let container = anchor.parentElement;
+    while (container) {
+      // Look for a container that has both the input and actions as children
+      if (container.querySelector('[data-testid="chat-input"]') && 
+          container.querySelector('[data-cds="ChatComposerActions"]')) {
+        break;
+      }
+      container = container.parentElement;
+    }
+
+    if (!container || !container.parentElement) {
+      log('attachBar: could not find suitable container');
+      return;
+    }
 
     const bar = createBar();
-    toolbar.parentElement.insertBefore(bar, toolbar.nextSibling);
+    container.parentElement.insertBefore(bar, container.nextSibling);
+    log('attachBar: bar inserted successfully');
+
+    // Render bar immediately with cached data if available
+    if (window._cmLastUsage) {
+      renderBar(window._cmLastUsage);
+    }
 
     if (!window._cmTick) {
       window._cmTick = setInterval(() => {
@@ -416,6 +522,7 @@
   // update bar (attach if needed, then render)
   function updateBar(usage) {
     window._cmLastUsage = usage;
+    cacheUsage(usage);  // Save to localStorage
     attachBar();
     renderBar(usage);
   }
