@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claude Maxer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Automatically triggers your Claude usage window reset and shows real-time session usage on claude.ai.",
   "permissions": ["alarms", "tabs", "storage", "scripting", "notifications"],
   "host_permissions": ["https://claude.ai/*", "https://raw.githubusercontent.com/*"],
