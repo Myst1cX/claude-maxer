@@ -1,6 +1,6 @@
 # Claude Maxer
 
-A Chrome extension for [claude.ai](https://claude.ai) that shows your live usage limits right in the page, adds a toolbar badge, tracks per-message cost, and can automatically open a fresh session when your usage window resets.
+A Firefox port of the Chrome extension for [claude.ai](https://claude.ai) that shows your live usage limits right in the page, adds a toolbar badge, tracks per-message cost, and can automatically open a fresh session when your usage window resets.
 
 ![Claude Maxer banner](assets/banner1.png)
 
@@ -18,15 +18,14 @@ A Chrome extension for [claude.ai](https://claude.ai) that shows your live usage
 
 ## Installation
 
-1. **Download [claude-maxer](https://github.com/ali5917/claude-maxer/archive/refs/heads/main.zip)**, then extract it somewhere
-2. Open Chrome and go to `chrome://extensions`.
-3. Turn on **Developer mode** using the toggle in the top-right corner.
-4. Click **Load unpacked**.
-5. Select the folder you extracted.
-6. Pin the extension to your toolbar so you can see the usage badge.
-7. Open [claude.ai](https://claude.ai). The usage bar should appear automatically.
+1. **Download claude-maxer-v1.0.1-firefox.zip**.
+2. Open Firefox and go to `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…**.
+4. Select the downloaded zip (or `manifest.json` if you extracted it first).
+5. Pin the extension to your toolbar so you can see the usage badge.
+6. Open [claude.ai](https://claude.ai). The usage bar should appear automatically.
 
-To update later, re-download and click the reload icon on the extension's card in `chrome://extensions`. After updating, also refresh any open claude.ai tabs.
+Temporary add-ons are removed when Firefox restarts, so you'll need to reload it each session unless it's signed and installed permanently through `about:addons`. After updating, also refresh any open claude.ai tabs.
 
 ## Note:
 No data leaves your browser. Nothing is sent to any server other than claude.ai itself (which your browser was already talking to).
