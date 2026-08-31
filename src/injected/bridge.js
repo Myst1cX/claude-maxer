@@ -68,6 +68,7 @@
     try {
       if (kind === 'usage') {
         const orgId = payload?.orgId;
+        const requestId = payload?.requestId;
         if (!orgId) throw new Error('Missing orgId');
 
         const res = await originalFetch(
@@ -75,7 +76,7 @@
           { method: 'GET', credentials: 'include' }
         );
         const json = await res.json();
-        post('usage_response', json);
+        post('usage_response', { ...json, requestId });
         return;
       }
     } catch (e) {
