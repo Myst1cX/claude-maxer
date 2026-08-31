@@ -5,8 +5,22 @@
   "description": "Automatically triggers your Claude usage window reset and shows real-time session usage on claude.ai.",
   "permissions": ["alarms", "tabs", "storage", "scripting", "notifications"],
   "host_permissions": ["https://claude.ai/*", "https://raw.githubusercontent.com/*"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "claude-maxer@extension",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
+    }
+  },
   "background": {
-    "service_worker": "src/background/background.js"
+    "scripts": [
+      "src/utils/scheduler.js",
+      "src/utils/notifications.js",
+      "src/background/background.js"
+    ]
   },
   "action": {
     "default_popup": "src/popup/popup.html",
