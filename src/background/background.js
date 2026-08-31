@@ -1,6 +1,7 @@
 // handles alarms, opens Claude tab, routes messages, manages auto-reset.
-
-importScripts('../utils/scheduler.js', '../utils/notifications.js');
+// scheduler.js and notifications.js are loaded before this file via manifest.json's
+// background.scripts array (Firefox's background page doesn't support importScripts,
+// which is a Worker-only API).
 
 const CLAUDE_URL = 'https://claude.ai/new?incognito=1&autostart=1';
 const GITHUB_REPO = 'ali5917/claude-maxer';
