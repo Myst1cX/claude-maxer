@@ -34,6 +34,24 @@
 
   injectBridge();
 
+  // Finds the smallest container that wraps both the chat input and the
+  // send button — i.e. the composer's editor+actions row. This is a
+  // structural landmark (based on stable data-testid hooks) rather than
+  // Anthropic's internal data-cds styling attributes, which have already
+  // been renamed once (ChatComposerActions -> ChatComposerDock) and broke
+  // the old attribute-based lookup silently.
+  function findComposerRowContainer(anchor) {
+    const sendBtn = document.querySelector('[data-testid="chat-input-send"]');
+    if (!sendBtn) return null;
+
+    let container = anchor.parentElement;
+    while (container) {
+      if (container.contains(sendBtn)) return container;
+      container = container.parentElement;
+    }
+    return null;
+  }
+
   // Attach bar early with empty state, will populate when data loads
   function attachBarEarly() {
     if (document.getElementById('cm-bar')) return;
@@ -44,14 +62,7 @@
       return;
     }
 
-    let container = anchor.parentElement;
-    while (container) {
-      if (container.querySelector('[data-testid="chat-input"]') && 
-          container.querySelector('[data-cds="ChatComposerActions"]')) {
-        break;
-      }
-      container = container.parentElement;
-    }
+    const container = findComposerRowContainer(anchor);
 
     if (!container?.parentElement) {
       setTimeout(attachBarEarly, 300);
@@ -101,6 +112,7 @@
   let requestCounter = 0;
   function fetchUsageOnLoad() {
     const orgId = getOrgIdFromCookie();
+    log('fetchUsageOnLoad orgId', orgId, 'full cookie string:', document.cookie);
     if (!orgId) return null;
     const requestId = ++requestCounter;
     window.postMessage({ marker: MARKER, type: 'request', kind: 'usage', payload: { orgId, requestId } }, '*');
@@ -267,7 +279,8 @@
         expectedFinalRequestId,
         awaitingFinalUsage,
         promptBaseline,
-        parsedFiveHour: parsed?.five_hour
+        parsedFiveHour: parsed?.five_hour,
+        rawPayload: data.payload
       });
       if (parsed) {
         updateBar(parsed);
@@ -460,16 +473,7 @@
       return;
     }
 
-    // Traverse up to find a stable container
-    let container = anchor.parentElement;
-    while (container) {
-      // Look for a container that has both the input and actions as children
-      if (container.querySelector('[data-testid="chat-input"]') && 
-          container.querySelector('[data-cds="ChatComposerActions"]')) {
-        break;
-      }
-      container = container.parentElement;
-    }
+    const container = findComposerRowContainer(anchor);
 
     if (!container || !container.parentElement) {
       log('attachBar: could not find suitable container');
